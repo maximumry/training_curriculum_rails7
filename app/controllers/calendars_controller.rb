@@ -15,28 +15,42 @@ class CalendarsController < ApplicationController
   private
 
   def plan_params
-    params.require(:calendars).permit(:date, :plan)
+    params.require(:plan).permit(:date, :plan)
   end
 
   def get_week
-    days = ['(日)','(月)','(火)','(水)','(木)','(金)','(土)']
-
-    # Dateオブジェクトは、日付を保持しています。下記のように`.today.day`とすると、今日の日付を取得できます。
-    @todays_date = Date.today
-    # 例)　今日が2月1日の場合・・・ Date.today.day => 1日
-
+    wdays = ['(日)','(月)','(火)','(水)','(木)','(金)','(土)']
+  
+    today = Date.today
+    # 今日が週の何日目か（0: 日曜日、1: 月曜日, ..., 6: 土曜日）
+    @todays_date = today.wday
+  
+    # 今週の月曜日から日曜日の日付を取得
+    start_of_week = today - @todays_date
+    end_of_week = start_of_week + 6
+  
     @week_days = []
-
-    plans = Plan.where(date: @todays_date..@todays_date + 6)
-
+  
+    plans = Plan.where(date: start_of_week..end_of_week)
+  
     7.times do |x|
       today_plans = []
       plans.each do |plan|
-        today_plans.push(plan.plan) if plan.date == @todays_date + x
+        today_plans.push(plan.plan) if plan.date == start_of_week + x
       end
-      days = { month: (@todays_date + x).month, date: (@todays_date+x).day, plans: today_plans}
+  
+      wday_num = start_of_week.wday + x
+      wday_num = wday_num >= 7 ? wday_num - 7 : wday_num
+  
+      days = { 
+        month: (start_of_week + x).month, 
+        date: (start_of_week + x).day, 
+        plans: today_plans, 
+        wday: wdays[wday_num]  # 曜日を追記
+      }
+
       @week_days.push(days)
     end
-
   end
+  
 end
