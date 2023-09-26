@@ -48,6 +48,7 @@ class CalendarsController < ApplicationController
         plans: today_plans, 
         wday: wdays[wday_num]  # 曜日を追記
       }
+
       @week_days.push(days)
     end
   end
